@@ -10,7 +10,7 @@ class Varos:
         self.kezdo_datum = datetime.strptime(kezdo_datum, "%Y-%m-%d")
         self.honapok = honapok
         self.aktualis_datum = self.kezdo_datum
-        self.epuletek = self.beolvas_csv("/mnt/data/verseny.csv", sep=';')
+        self.epuletek = self.beolvas_csv(r"C:\Users\orosz\Desktop\Smaragd-pontyok\ac#\verseny.csv", sep=';')
         self.lakosok = self.beolvas_csv("lakosok.csv")
         self.szolgaltatasok = self.beolvas_csv("szolgaltatasok.csv")
         self.varosfejlesztesek = self.beolvas_csv("varosfejlesztesek.csv")
@@ -24,6 +24,15 @@ class Varos:
         except FileNotFoundError:
             print(f"Hiba: {fajlnev} nem található!")
             return []
+    
+    def ment_csv(self, fajlnev, adatok, fejlec):
+        try:
+            with open(fajlnev, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.DictWriter(file, fieldnames=fejlec, delimiter=';')
+                writer.writeheader()
+                writer.writerows(adatok)
+        except Exception as e:
+            print(f"Hiba történt a mentés során: {e}")
 
     def betolt_esemenyek(self):
         return [
@@ -40,6 +49,12 @@ class Varos:
         self.penzkeret += esemeny["penzvaltozas"]
         self.elegedettseg = max(0, min(100, self.elegedettseg + esemeny["elegedettseg_valtozas"]))
         print(f"Esemény történt: {esemeny['nev']} (Pénzváltozás: {esemeny['penzvaltozas']}, Elégedettség változás: {esemeny['elegedettseg_valtozas']})")
+        
+        if "Tűzeset" in esemeny['nev'] and self.epuletek:
+            random_epulet = random.choice(self.epuletek)
+            print(f"Leégett épület: {random_epulet['nev']}")
+            self.epuletek.remove(random_epulet)
+            self.ment_csv("/mnt/data/verseny.csv", self.epuletek, list(random_epulet.keys()))
     
     def ev_fordulo(self):
         print(f"Év: {self.aktualis_datum.year}")
